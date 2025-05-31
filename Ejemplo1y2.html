@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro y Modal | .DARKWEB</title>
+    <style>
+       
+        :root {
+            --neon-blue: #00ffff;
+            --neon-green: #00ff00;
+            --dark-bg: #1a1a1a;
+            --form-bg: #2a2a2a;
+            --text-color: #e0e0e0;
+            --error-color: #ff3366;
+            --border-glow: rgba(0, 255, 255, 0.5);
+            --button-glow: rgba(0, 255, 0, 0.7);
+            --modal-bg: #1f1f1f; 
+            --modal-border-glow: rgba(0, 255, 255, 0.7);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        body {
+            background: var(--dark-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+      
+        .form-container {
+            background: var(--form-bg);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--neon-blue);
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+            z-index: 1;
+            animation: fadeInGlow 1.5s ease-out forwards;
+            border: 1px solid var(--neon-blue);
+            margin-bottom: 20px; 
+        }
+
+        @keyframes fadeInGlow {
+            from { opacity: 0; transform: translateY(-50px) scale(0.9); box-shadow: 0 0 0 transparent; }
+            to { opacity: 1; transform: translateY(0) scale(1); box-shadow: 0 0 20px var(--neon-blue); }
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+            font-size: 2em;
+            letter-spacing: 3px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+            font-size: 0.95em;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: #111;
+            border: 1px solid var(--neon-blue);
+            border-radius: 5px;
+            color: var(--text-color);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: inset 0 0 5px rgba(0, 255, 255, 0.2);
+        }
+
+        input:focus {
+            border-color: var(--neon-green);
+            outline: none;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            color: var(--text-color);
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--neon-blue);
+            border-radius: 3px;
+            background-color: #111;
+            cursor: pointer;
+            position: relative;
+            margin-right: 12px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .checkbox-container input[type="checkbox"]:checked {
+            background-color: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+
+        .checkbox-container input[type="checkbox"]:checked::after {
+            content: '\2713';
+            color: var(--dark-bg);
+            font-size: 14px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .checkbox-container label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: normal;
+            text-shadow: none;
+            color: var(--text-color);
+        }
+
+        .error {
+            color: var(--error-color);
+            font-size: 0.85em;
+            margin-top: -15px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px var(--error-color);
+            animation: flicker 1s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        button {
+            width: 100%;
+            background: var(--neon-green);
+            color: var(--dark-bg);
+            padding: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.1em;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        button:hover {
+            background: var(--neon-blue);
+            color: var(--dark-bg);
+            box-shadow: 0 0 25px var(--neon-blue), 0 0 50px var(--neon-blue);
+            transform: translateY(-2px);
+        }
+
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6); 
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--modal-bg);
+            padding: 30px;
+            border: 2px solid var(--neon-blue); 
+            border-radius: 10px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 0 25px var(--modal-border-glow); 
+            position: relative;
+            animation: fadeInGlow 0.4s ease-out forwards; 
+        }
+
+        .close-button {
+            color: var(--neon-blue); 
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            text-shadow: 0 0 8px var(--neon-blue);
+            transition: text-shadow 0.3s ease, color 0.3s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--neon-green); 
+            text-shadow: 0 0 15px var(--neon-green);
+            text-decoration: none;
+        }
+
+        .modal-header {
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--neon-blue); 
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+            letter-spacing: 2px;
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+            line-height: 1.8;
+            color: var(--text-color); 
+            font-size: 1.1em;
+            text-shadow: 0 0 3px rgba(255,255,255,0.1); 
+        }
+
+        .modal-footer {
+            text-align: right;
+            padding-top: 20px;
+            border-top: 1px solid var(--neon-blue);
+        }
+
+        .modal-footer button {
+            width: auto; 
+            padding: 10px 25px;
+            margin-left: 10px; 
+            font-size: 1em;
+        }
+
+        #confirmBtn {
+            background-color: var(--neon-green);
+            color: var(--dark-bg);
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        #confirmBtn:hover {
+            background-color: var(--neon-blue); 
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        #cancelBtn {
+            background-color: var(--error-color);
+            color: var(--dark-bg);
+            box-shadow: 0 0 10px var(--error-color);
+        }
+
+        #cancelBtn:hover {
+            background-color: #e6004c; 
+            box-shadow: 0 0 20px #e6004c;
+        }
+
+   
+        #openModalBtn {
+            position: absolute;
+            bottom: 30px; 
+            z-index: 2; 
+            width: auto; 
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background: var(--neon-blue); 
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        #openModalBtn:hover {
+            background: var(--neon-green);
+            box-shadow: 0 0 25px var(--neon-green);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="form-container">
+        <h2>Registro de Usuario</h2>
+        <form id="registerForm" novalidate>
+            <label for="firstName">First Name:</label>
+            <input type="text" id="firstName" required autocomplete="off">
+            <div id="firstNameError" class="error"></div>
+
+            <label for="lastName">Last Name:</label>
+            <input type="text" id="lastName" required autocomplete="off">
+            <div id="lastNameError" class="error"></div>
+
+            <label for="username">Username:</label>
+            <input type="text" id="username" required autocomplete="off">
+            <div id="usernameError" class="error"></div>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" required autocomplete="off">
+            <div id="passwordError" class="error"></div>
+
+            <label for="confirmPassword">Confirm Password:</label>
+            <input type="password" id="confirmPassword" required autocomplete="off">
+            <div id="confirmPasswordError" class="error"></div>
+
+            <label for="birthday">Birthday:</label>
+            <input type="date" id="birthday" required>
+            <div id="birthdayError" class="error"></div>
+
+            <div class="checkbox-container">
+                <input type="checkbox" id="newsletter">
+                <label for="newsletter">Suscribirse al boletín</label>
+            </div>
+
+            <button type="submit">Registrarse</button>
+        </form>
+    </div>
+
+    <button id="openModalBtn">Abrir Modal</button>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Alerta en Matrix</h2>
+                <span class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Se ha detectado una actividad inusual en su conexión. ¿Desea proceder con la desconexión segura de la Matrix?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmBtn">Salir de la Matrix</button>
+                <button id="cancelBtn">Quedarse</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; 
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+
+        function drawMatrixRain() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0f0'; 
+            ctx.font = `${fontSize}px monospace`;
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = characters[Math.floor(Math.random() * characters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+             
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                drops[i]++;
+            }
+        }
+
+      
+        const registerForm = document.getElementById('registerForm');
+
+        registerForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const birthday = document.getElementById('birthday').value;
+
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+
+            let valid = true;
+
+            const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+            if (!firstName || !nameRegex.test(firstName)) {
+                document.getElementById('firstNameError').textContent = 'Los nombres no tienen numeros ni caracteres, Solo letras y espacios kappa.';
+                valid = false;
+            }
+            if (!lastName || !nameRegex.test(lastName)) {
+                document.getElementById('lastNameError').textContent = 'Los apellidos no tienen numeros ni caracteres, Solo letras y espacios kappa.';
+                valid = false;
+            }
+            if (username.length < 4) {
+                document.getElementById('usernameError').textContent = 'El usuario debe tener al menos 4 caracteres.';
+                valid = false;
+            }
+            const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(.{8,})$/;
+            if (!passwordRegex.test(password)) {
+                document.getElementById('passwordError').textContent = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo (!@#$%^&*).';
+                valid = false;
+            }
+            if (password !== confirmPassword) {
+                document.getElementById('confirmPasswordError').textContent = 'Las contraseñas no coinciden.';
+                valid = false;
+            }
+
+            if (!birthday) {
+                document.getElementById('birthdayError').textContent = 'Debes seleccionar una fecha.';
+                valid = false;
+            } else {
+                const today = new Date();
+                const birthDate = new Date(birthday);
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                if (age < 13) {
+                    document.getElementById('birthdayError').textContent = 'Debes tener al menos 21 años para registrarte.';
+                    valid = false;
+                }
+            }
+
+            if (valid) {
+                alert("¡Bienvenido a la Matrix! Formulario enviado correctamente.");
+                registerForm.reset();
+            }
+        });
+
+        
+        const modal = document.getElementById('myModal');
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeButton = document.querySelector('.close-button');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        openModalBtn.onclick = function() {
+            modal.style.display = 'flex';
+        }
+
+        closeButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        confirmBtn.onclick = function() {
+            alert('Desconectado de la Matrix');
+            modal.style.display = 'none';
+        }
+
+        cancelBtn.onclick = function() {
+            alert('Desconexión cancelada. Permaneciendo en la Matrix.');
+            modal.style.display = 'none';
+        }
+
+      
+        setInterval(drawMatrixRain, 30); 
+    </script>
+</body>
+</html>
